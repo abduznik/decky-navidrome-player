@@ -96,6 +96,8 @@ jobs:
           body: |
             Decky Loader plugin for Navidrome.
 
+            ![Navidrome Player running on a Retroid Pocket Nova](https://raw.githubusercontent.com/abduznik/decky-navidrome-player/main/assets/retroid-pocket-nova.jpg)
+
             **Downloads**
             - `navidrome-player-*-arm64.zip` for arm64 devices
             - `navidrome-player-*-x86_64.zip` for x86_64 devices

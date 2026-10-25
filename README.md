@@ -1,5 +1,10 @@
 # Navidrome Player for Decky Loader
 
+[![CI](https://github.com/abduznik/decky-navidrome-player/actions/workflows/ci.yml/badge.svg)](https://github.com/abduznik/decky-navidrome-player/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/abduznik/decky-navidrome-player?label=release)](https://github.com/abduznik/decky-navidrome-player/releases/latest)
+[![License: BSD-3-Clause](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](LICENSE)
+[![Architectures](https://img.shields.io/badge/arch-arm64%20%7C%20x86__64-1a9fff)](README.md#arm64-support)
+
 Stream your [Navidrome](https://www.navidrome.org/) library from the Steam Deck
 Quick Access Menu — including while a game is running — with a real player UI,
 volume and shuffle controls, and a size-capped offline cache.
@@ -7,10 +12,15 @@ volume and shuffle controls, and a size-capped offline cache.
 Built for both **arm64** and **x86_64**. The plugin is pure Python + TypeScript
 with no compiled binaries, so there is nothing architecture-specific to port.
 
-> Status: initial scaffold (v0.1.0). The backend has tests for authentication,
-> caching, range requests and downloads. It has not yet been tried against a
-> physical Navidrome server from this workspace, so treat the first install as a
-> beta.
+![Navidrome Player running on a Retroid Pocket Nova](assets/retroid-pocket-nova.jpg)
+
+*Running on a **Retroid Pocket Nova** (arm64): cover art, seek bar, transport
+controls, shuffle/repeat and volume, directly in the Decky Quick Access Menu.*
+
+> Status: **v0.1.2 beta**, verified on a Retroid Pocket Nova (arm64). The
+> backend has 34 tests covering authentication, caching, range requests,
+> downloads and the plugin API. The same code builds and tests natively on
+> x86_64.
 
 ## Features
 
@@ -198,6 +208,11 @@ pnpm build
 pnpm watch             # rebuild on change
 ```
 
+`scripts/dev-install.sh` runs the full loop for the current machine: install,
+typecheck, build, backend tests, package and deploy to `~/homebrew/plugins`.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and the
+rules that keep the plugin arm64-safe.
+
 Project layout:
 
 ```text
@@ -220,6 +235,41 @@ scripts/               package, deploy, dev-install
 The frontend keeps a module-level `Audio` object, so closing the Quick Access
 Menu does not stop playback. `onDismount` pauses and releases it when Decky
 unloads the plugin.
+
+## Releasing
+
+Releases are built by GitHub Actions from the tag, never uploaded by hand:
+
+```bash
+# bump package.json + CHANGELOG.md first
+git commit -am "Release v0.1.3"
+git tag -a v0.1.3 -m "Navidrome Player 0.1.3"
+git push origin main v0.1.3
+```
+
+The [release workflow](.github/workflows/release.yml) then:
+
+1. runs the typecheck, Rollup build and backend tests on native `x86_64` and
+   `arm64` runners;
+2. packages `navidrome-player-<version>-{x86_64,arm64}.zip`;
+3. publishes a GitHub release with both zips and `SHA256SUMS`.
+
+The two archives contain the same pure Python/TypeScript payload, but the arm64
+artifact is genuinely built and tested on an `aarch64` runner.
+
+## Troubleshooting
+
+| Symptom | Fix |
+| --- | --- |
+| "Cannot reach Navidrome" | Check the URL from another device on the same network. HTTPS with a self-signed certificate is not supported by the Python client. |
+| Login test succeeds but playback fails | Try **Settings → Streaming quality → 128 kbps**. The source format may not be decodable by Steam's CEF. |
+| A downloaded song won't play offline | Only songs in the **Offline** tab are guaranteed offline. Playlists/albums still need the server for browsing. |
+| Controller focus feels stuck | Update to the latest release. Multi-button rows are explicit focus groups; report the exact row if a direction still won't exit. |
+| Plugin doesn't appear in Decky | Confirm the folder is `~/homebrew/plugins/navidrome-player/`, then restart `plugin_loader` or reboot. |
+| Cache size is over the limit | Pinned manual downloads are never evicted. Raise the limit or delete downloads in the **Offline** tab. |
+
+Logs are written by Decky to `~/homebrew/logs/navidrome-player/`
+(`plugin.log`).
 
 ## Prior art
 
@@ -250,6 +300,12 @@ running game.
 - No gapless playback, lyrics, ReplayGain or Android-native UI.
 - Cached audio is exposed to local processes through a tokenized loopback URL;
   it is not encrypted at rest.
+
+## Contributing
+
+Bug reports and pull requests are welcome. Please read
+[CONTRIBUTING.md](CONTRIBUTING.md) first, and use the issue templates when
+opening a report. Security issues should follow [SECURITY.md](SECURITY.md).
 
 ## License
 

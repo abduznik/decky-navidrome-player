@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Decky Loader help
+    url: https://deckbrew.xyz/discord
+    about: Installation and Decky Loader issues that are not specific to this plugin.
+  - name: Navidrome documentation
+    url: https://www.navidrome.org/docs/
+    about: Server setup, users and library configuration.

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.2
+
+- Added a verified Retroid Pocket Nova (arm64) screenshot to the README and
+  release notes.
+- Repository polish: contributor guide, security policy, issue/PR templates,
+  editor/git attributes, architecture and release documentation.
+- Packaging now ships the full `assets/` directory so README images work from
+  an installed plugin. No runtime behavior changes.
+
 ## 0.1.1
 
 - Always return to the Player tab after the first successful login; the player

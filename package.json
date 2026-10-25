@@ -1,6 +1,6 @@
 {
   "name": "decky-navidrome-player",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Navidrome music streaming, offline cache and player for Decky Loader",
   "type": "module",
   "scripts": {

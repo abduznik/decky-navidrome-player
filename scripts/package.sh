@@ -35,8 +35,7 @@ mkdir -p "$STAGE"
 cp "$ROOT/plugin.json" "$ROOT/package.json" "$ROOT/main.py" "$ROOT/decky.pyi" "$ROOT/README.md" "$ROOT/LICENSE" "$STAGE/"
 cp -R "$ROOT/dist" "$STAGE/dist"
 cp -R "$ROOT/py_modules" "$STAGE/py_modules"
-mkdir -p "$STAGE/assets"
-cp "$ROOT/assets/logo.png" "$STAGE/assets/logo.png" 2>/dev/null || true
+cp -R "$ROOT/assets" "$STAGE/assets"
 
 find "$STAGE" -type d -name '__pycache__' -prune -exec rm -rf {} +
 find "$STAGE" -type f -name '*.pyc' -delete
