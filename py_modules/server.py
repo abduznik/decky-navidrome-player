@@ -288,6 +288,7 @@ class _MediaHandler(BaseHTTPRequestHandler):
     def _common_headers(self) -> None:
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Headers", "Range, Content-Type")
+        self.send_header("Access-Control-Allow-Private-Network", "true")
         self.send_header(
             "Access-Control-Expose-Headers",
             "Content-Range, Accept-Ranges, Content-Length",

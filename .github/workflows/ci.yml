@@ -22,6 +22,11 @@ jobs:
             arch: arm64
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Show runner architecture
+        run: |
+          uname -m
+          python3 -c 'import platform; print(platform.machine())'
+
       - name: Checkout
         uses: actions/checkout@v4
 

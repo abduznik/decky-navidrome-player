@@ -305,7 +305,13 @@ class PlayerStore {
   }
 
   toggleShuffle(): void {
-    this.setShuffle(!this.state.shuffle);
+    const enabling = !this.state.shuffle;
+    if (enabling && this.state.index >= 0) {
+      const played = this.state.queue.slice(0, this.state.index + 1);
+      const upcoming = shuffleArray(this.state.queue.slice(this.state.index + 1));
+      this.emit({ queue: [...played, ...upcoming] });
+    }
+    this.setShuffle(enabling);
   }
 
   cycleRepeat(): void {
