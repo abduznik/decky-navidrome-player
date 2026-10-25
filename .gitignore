@@ -1,0 +1,11 @@
+node_modules/
+dist/
+out/
+*.zip
+*.zip.sha256
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.DS_Store
+.vscode/settings.json

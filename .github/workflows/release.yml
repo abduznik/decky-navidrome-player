@@ -1,0 +1,101 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            arch: x86_64
+          - os: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck and build
+        run: |
+          pnpm typecheck
+          pnpm build
+
+      - name: Backend tests
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Package plugin
+        run: ./scripts/package.sh "${{ matrix.arch }}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: navidrome-player-${{ matrix.arch }}
+          path: out/*.zip
+          if-no-files-found: error
+
+  publish:
+    name: Publish release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: navidrome-player-*
+          path: release
+          merge-multiple: true
+
+      - name: Checksums
+        run: |
+          cd release
+          sha256sum *.zip > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/*.zip
+            release/SHA256SUMS
+          generate_release_notes: true
+          body: |
+            Decky Loader plugin for Navidrome.
+
+            **Downloads**
+            - `navidrome-player-*-arm64.zip` for arm64 devices
+            - `navidrome-player-*-x86_64.zip` for x86_64 devices
+
+            Both archives contain the same pure Python/TypeScript plugin (no native
+            binaries), but each is built and tested on its native GitHub Actions
+            runner. Unzip the archive so that `navidrome-player/` lands inside
+            `~/homebrew/plugins/`, then restart Decky Loader.

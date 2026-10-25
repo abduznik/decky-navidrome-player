@@ -1,0 +1,11 @@
+{
+  "name": "Navidrome Player",
+  "author": "abduznik",
+  "flags": ["debug"],
+  "api_version": 1,
+  "publish": {
+    "tags": ["music", "navidrome", "subsonic", "offline", "arm64"],
+    "description": "Stream and cache your Navidrome library, with shuffle, volume and offline downloads.",
+    "image": "https://raw.githubusercontent.com/abduznik/decky-navidrome-player/main/assets/logo.png"
+  }
+}
