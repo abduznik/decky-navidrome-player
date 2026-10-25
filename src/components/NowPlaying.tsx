@@ -16,7 +16,15 @@ import { api, errorMessage } from "../api";
 import { formatTime } from "../format";
 import { player, usePlayer } from "../state/player";
 import type { Song } from "../types";
-import { ActionButton, Cover, EmptyState, IconButton, SongRow, SubTitle } from "./Common";
+import {
+  ActionButton,
+  ButtonRow,
+  Cover,
+  EmptyState,
+  IconButton,
+  SongRow,
+  SubTitle,
+} from "./Common";
 
 export function NowPlaying() {
   const state = usePlayer();
@@ -119,15 +127,7 @@ export function NowPlaying() {
       </PanelSectionRow>
 
       <PanelSectionRow>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-            padding: "2px 0 4px",
-          }}
-        >
+        <ButtonRow style={{ alignItems: "center", justifyContent: "center", gap: 10, padding: "2px 0 4px" }}>
           <IconButton
             icon={<FaRandom size={15} />}
             label={state.shuffle ? "Shuffle on" : "Shuffle off"}
@@ -157,7 +157,7 @@ export function NowPlaying() {
             active={state.repeat !== "off"}
             onClick={() => player.cycleRepeat()}
           />
-        </div>
+        </ButtonRow>
       </PanelSectionRow>
 
       <PanelSectionRow>
@@ -188,7 +188,7 @@ export function NowPlaying() {
       </PanelSectionRow>
 
       <PanelSectionRow>
-        <div style={{ display: "flex", gap: 6 }}>
+        <ButtonRow>
           <ActionButton disabled={busy} onClick={() => void download([current])} style={{ flex: 1 }}>
             <FaDownload size={11} /> Save song
           </ActionButton>
@@ -199,7 +199,7 @@ export function NowPlaying() {
           >
             Save queue ({state.queue.length})
           </ActionButton>
-        </div>
+        </ButtonRow>
       </PanelSectionRow>
 
       {upcoming.length > 0 ? (

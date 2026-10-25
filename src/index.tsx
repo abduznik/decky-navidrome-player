@@ -26,7 +26,7 @@ import { Downloads } from "./components/Downloads";
 import { Library } from "./components/Library";
 import { NowPlaying } from "./components/NowPlaying";
 import { SettingsView } from "./components/SettingsView";
-import { ActionButton, IconButton } from "./components/Common";
+import { ActionButton, ButtonRow, IconButton } from "./components/Common";
 
 function Content() {
   const [tab, setTab] = useState<Tab>("now");
@@ -132,7 +132,7 @@ function Content() {
   return (
     <>
       <PanelSection>
-        <div style={{ display: "flex", gap: 5, padding: "0 2px" }}>
+        <ButtonRow style={{ gap: 5, padding: "0 2px" }}>
           {tabs.map((item) => (
             <TabButton
               key={item.id}
@@ -142,7 +142,7 @@ function Content() {
               onClick={() => setTab(item.id)}
             />
           ))}
-        </div>
+        </ButtonRow>
       </PanelSection>
 
       {error && (
@@ -202,7 +202,11 @@ function Content() {
           settings={settings}
           stats={stats}
           onSaved={(saved) => {
+            const wasConfigured = settings?.configured ?? false;
             setSettings(saved);
+            if (!wasConfigured && saved.configured) {
+              setTab("now");
+            }
             void refreshAll();
           }}
           onStats={() => void refreshAll()}

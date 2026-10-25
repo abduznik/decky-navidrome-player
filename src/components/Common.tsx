@@ -104,6 +104,23 @@ export function ActionButton({
   );
 }
 
+export function ButtonRow({
+  children,
+  style,
+}: {
+  children: ReactNode;
+  style?: CSSProperties;
+}) {
+  return (
+    <Focusable
+      flow-children="row"
+      style={{ display: "flex", gap: 6, width: "100%", ...style }}
+    >
+      {children}
+    </Focusable>
+  );
+}
+
 export function Cover({
   coverArt,
   size,
@@ -174,7 +191,10 @@ export function SongRow({
   const label = subtitle ?? [song.artist, song.album].filter(Boolean).join(" · ");
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+    <Focusable
+      flow-children="row"
+      style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}
+    >
       <Focusable
         onActivate={onPlay}
         onClick={onPlay}
@@ -228,7 +248,7 @@ export function SongRow({
       {action && (
         <IconButton icon={action.icon} label={action.label} onClick={action.onClick} size={32} />
       )}
-    </div>
+    </Focusable>
   );
 }
 

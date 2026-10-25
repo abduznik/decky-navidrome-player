@@ -11,7 +11,7 @@ import { api, errorMessage } from "../api";
 import { formatBytes, formatCount } from "../format";
 import { player, usePlayer } from "../state/player";
 import type { CacheStats, Settings, Song } from "../types";
-import { ActionButton, EmptyState, SongRow, SubTitle } from "./Common";
+import { ActionButton, ButtonRow, EmptyState, SongRow, SubTitle } from "./Common";
 
 export function Downloads({
   stats,
@@ -131,7 +131,7 @@ export function Downloads({
       )}
 
       <PanelSectionRow>
-        <div style={{ display: "flex", gap: 6 }}>
+        <ButtonRow>
           <ActionButton
             primary
             disabled={!downloads.length}
@@ -147,7 +147,7 @@ export function Downloads({
           >
             <FaRandom size={10} /> Shuffle
           </ActionButton>
-        </div>
+        </ButtonRow>
       </PanelSectionRow>
       <PanelSectionRow>
         <ActionButton disabled={busy} onClick={() => void downloadQueue()}>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import {
   DropdownItem,
   PanelSection,
@@ -12,7 +12,7 @@ import { FaPlug, FaSave, FaTrash } from "react-icons/fa";
 import { api, errorMessage } from "../api";
 import { formatBytes } from "../format";
 import type { CacheStats, ConnectionResult, Settings } from "../types";
-import { ActionButton, SubTitle } from "./Common";
+import { ActionButton, ButtonRow, SubTitle } from "./Common";
 
 const GB = 1024 * 1024 * 1024;
 const BITRATES = [
@@ -133,7 +133,10 @@ export function SettingsView({
         <TextField
           label="Password"
           bIsPassword
+          bShowCopyAction={false}
+          bShowClearAction={false}
           value={form.password}
+          style={{ WebkitTextSecurity: "disc" } as CSSProperties}
           onChange={(event) => patch({ password: event.target.value })}
         />
       </PanelSectionRow>
@@ -149,14 +152,14 @@ export function SettingsView({
         </div>
       </PanelSectionRow>
       <PanelSectionRow>
-        <div style={{ display: "flex", gap: 6 }}>
+        <ButtonRow>
           <ActionButton disabled={busy} onClick={() => void testConnection()} style={{ flex: 1 }}>
             <FaPlug size={10} /> Test
           </ActionButton>
           <ActionButton primary disabled={busy} onClick={() => void save()} style={{ flex: 1 }}>
             <FaSave size={10} /> Save
           </ActionButton>
-        </div>
+        </ButtonRow>
       </PanelSectionRow>
 
       <SubTitle text="Playback & cache" />

@@ -18,7 +18,15 @@ import { api, errorMessage } from "../api";
 import { formatCount } from "../format";
 import { player } from "../state/player";
 import type { Album, Playlist, SearchResult, Song } from "../types";
-import { ActionButton, AlbumRow, Cover, EmptyState, SongRow, SubTitle } from "./Common";
+import {
+  ActionButton,
+  AlbumRow,
+  ButtonRow,
+  Cover,
+  EmptyState,
+  SongRow,
+  SubTitle,
+} from "./Common";
 
 interface Detail {
   kind: "album" | "playlist";
@@ -29,16 +37,18 @@ interface Detail {
 }
 
 const ALBUM_KINDS = [
-  { data: "random", label: "Random" },
-  { data: "newest", label: "Newest" },
-  { data: "alphabeticalByArtist", label: "By artist" },
+  { data: "newest", label: "Recently added" },
   { data: "recent", label: "Recently played" },
+  { data: "frequent", label: "Most played" },
+  { data: "random", label: "Random" },
+  { data: "alphabeticalByArtist", label: "By artist" },
+  { data: "alphabeticalByName", label: "Alphabetical" },
 ];
 
 export function Library() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
-  const [albumKind, setAlbumKind] = useState("random");
+  const [albumKind, setAlbumKind] = useState("newest");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -62,7 +72,7 @@ export function Library() {
       try {
         const [nextPlaylists, nextAlbums] = await Promise.all([
           api.getPlaylists(),
-          api.getAlbums("random", 30, 0),
+          api.getAlbums("newest", 30, 0),
         ]);
         if (!alive) return;
         setPlaylists(nextPlaylists);
@@ -171,7 +181,7 @@ export function Library() {
           </div>
         </PanelSectionRow>
         <PanelSectionRow>
-          <div style={{ display: "flex", gap: 6 }}>
+          <ButtonRow>
             <ActionButton
               primary
               disabled={!detail.songs.length}
@@ -194,7 +204,7 @@ export function Library() {
             >
               <FaDownload size={10} /> All
             </ActionButton>
-          </div>
+          </ButtonRow>
         </PanelSectionRow>
         {detail.songs.map((song, index) => (
           <SongRow
@@ -294,7 +304,7 @@ export function Library() {
       <SubTitle text="Albums" />
       <PanelSectionRow>
         <DropdownItem
-          label="Order"
+          label="Filter"
           rgOptions={ALBUM_KINDS}
           selectedOption={albumKind}
           onChange={(option) => {

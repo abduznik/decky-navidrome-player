@@ -22,7 +22,11 @@ with no compiled binaries, so there is nothing architecture-specific to port.
 - **Random radio**: one button starts an endless shuffled mix; when the queue
   runs out it asks Navidrome for another random batch.
 - **Browse**: search, playlists, albums, and per-album/playlist play, shuffle
-  and download-all.
+  and download-all. Album filtering by **recently added**, **recently played**,
+  **most played**, **random**, **artist** or **alphabetical**.
+- **Controller-first navigation**: every action is a focusable Steam item, and
+  horizontal button rows are explicit focus groups so the D-pad/joystick can
+  move up/down out of a row instead of being trapped in it.
 - **Offline cache** with a configurable limit (default **1 GiB**, adjustable
   from 0.25 GB to 32 GB in the UI).
   - Automatically caches the song that starts playing (can be disabled).
