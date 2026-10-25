@@ -85,11 +85,15 @@ class DownloadTests(unittest.TestCase):
     def test_manual_download_is_pinned(self) -> None:
         result = self.manager.enqueue([song("one")], pinned=True)
         self.assertEqual(result["queued"], 1)
-        self.assertTrue(wait_for(lambda: self.cache.is_cached("one")))
+        # Wait for the completion event, not just the file: the manifest is
+        # written just before the worker emits download_complete.
+        self.assertTrue(
+            wait_for(lambda: any(event == "download_complete" for event, _ in self.events))
+        )
+        self.assertTrue(self.cache.is_cached("one"))
         entry = self.cache.peek("one")
         self.assertTrue(entry["pinned"])
         self.assertEqual(entry["title"], "Song one")
-        self.assertTrue(any(event == "download_complete" for event, _ in self.events))
         progress = [payload for event, payload in self.events if event == "download_progress"]
         self.assertTrue(progress)
         self.assertEqual(progress[-1]["percent"], 100)
