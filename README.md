@@ -17,8 +17,8 @@ with no compiled binaries, so there is nothing architecture-specific to port.
 *Running on a **Retroid Pocket Nova** (arm64): cover art, seek bar, transport
 controls, shuffle/repeat and volume, directly in the Decky Quick Access Menu.*
 
-> Status: **v0.1.2 beta**, verified on a Retroid Pocket Nova (arm64). The
-> backend has 34 tests covering authentication, caching, range requests,
+> Status: **v0.1.3 beta**, verified on a Retroid Pocket Nova (arm64). The
+> backend has 39 tests covering authentication, caching, range requests,
 > downloads and the plugin API. The same code builds and tests natively on
 > x86_64.
 
@@ -33,7 +33,13 @@ controls, shuffle/repeat and volume, directly in the Decky Quick Access Menu.*
   runs out it asks Navidrome for another random batch.
 - **Browse**: search, playlists, albums, and per-album/playlist play, shuffle
   and download-all. Album filtering by **recently added**, **recently played**,
-  **most played**, **random**, **artist** or **alphabetical**.
+  **most played**, **random**, **artist** or **alphabetical**, selected with
+  controller-friendly filter buttons that stay on the same screen.
+- **Hide playlists** with a button in the Library or Settings; the choice is
+  saved between sessions.
+- **Download queue panel** in the Offline tab: per-track progress, queued and
+  finished jobs, and failure messages. Per-download notifications are gone, so
+  batches don't spam toasts or sounds.
 - **Controller-first navigation**: every action is a focusable Steam item, and
   horizontal button rows are explicit focus groups so the D-pad/joystick can
   move up/down out of a row instead of being trapped in it.
@@ -113,6 +119,8 @@ Other settings:
 - **Cache limit** — 0.25–32 GB in the UI (default 1 GB). Lowering it evicts
   automatic cache only; pinned downloads stay and the UI shows when the total is
   over the limit.
+- **Show playlists** — hide the playlists section from the Library if you only
+  browse albums. Saved immediately and restored on the next session.
 
 ### Where files live
 
@@ -192,7 +200,7 @@ CI runs on native runners for both architectures:
 | `x86_64` | `ubuntu-24.04` |
 | `arm64` | `ubuntu-24.04-arm` |
 
-Each job runs the TypeScript typecheck, the Rollup build, all 34 backend tests,
+Each job runs the TypeScript typecheck, the Rollup build, all 39 backend tests,
 and packages the plugin. The `arm64` zip is therefore built and tested on arm64,
 not cross-compiled. No `@rollup/rollup-linux-x64-*` package is pinned in
 `package.json`; Rollup resolves its optional native binary for the runner's
@@ -228,7 +236,7 @@ py_modules/
   downloads.py         background download queue
   server.py            loopback HTTP server with Range support
   config.py            settings validation/persistence
-tests/                 backend tests (34 tests, no external services)
+tests/                 backend tests (39 tests, no external services)
 scripts/               package, deploy, dev-install
 ```
 

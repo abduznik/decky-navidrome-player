@@ -6,29 +6,36 @@ import {
   ToggleField,
 } from "@decky/ui";
 import { toaster } from "@decky/api";
-import { FaDownload, FaRandom, FaTrash } from "react-icons/fa";
+import { FaDownload, FaListUl, FaRandom, FaTrash } from "react-icons/fa";
 import { api, errorMessage } from "../api";
 import { formatBytes, formatCount } from "../format";
 import { player, usePlayer } from "../state/player";
-import type { CacheStats, Settings, Song } from "../types";
+import type { CacheStats, DownloadQueue, DownloadState, Settings, Song } from "../types";
 import { ActionButton, ButtonRow, EmptyState, SongRow, SubTitle } from "./Common";
 
 export function Downloads({
   stats,
   downloads,
   settings,
+  queue,
   onRefresh,
   onSettingsChange,
+  onClearQueue,
 }: {
   stats: CacheStats | null;
   downloads: Song[];
   settings: Settings | null;
+  queue: DownloadQueue;
   onRefresh: () => void;
   onSettingsChange: (settings: Settings) => void;
+  onClearQueue: () => void;
 }) {
   const state = usePlayer();
   const [busy, setBusy] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [showQueue, setShowQueue] = useState(false);
+  const activeCount = queue.downloading + queue.pending;
+  const finishedCount = queue.done + queue.failed;
 
   const used = stats?.totalBytes ?? 0;
   const limit = stats?.limitBytes ?? settings?.cache_limit_bytes ?? 0;
@@ -155,6 +162,35 @@ export function Downloads({
         </ActionButton>
       </PanelSectionRow>
 
+      <PanelSectionRow>
+        <ButtonRow>
+          <ActionButton onClick={() => setShowQueue((value) => !value)} style={{ flex: 1 }}>
+            <FaListUl size={10} /> Queue
+            {activeCount > 0 ? ` (${activeCount})` : ""}
+            {queue.failed > 0 ? ` · ${queue.failed} failed` : ""}
+          </ActionButton>
+          <ActionButton
+            disabled={finishedCount === 0}
+            onClick={onClearQueue}
+            style={{ flex: 1 }}
+          >
+            Clear finished
+          </ActionButton>
+        </ButtonRow>
+      </PanelSectionRow>
+
+      {showQueue && (
+        <>
+          {queue.items.length === 0 ? (
+            <EmptyState text="The download queue is empty." />
+          ) : (
+            queue.items.map((item) => (
+              <QueueRow key={item.id} item={item} />
+            ))
+          )}
+        </>
+      )}
+
       <SubTitle text={`Downloads (${downloads.length})`} />
       {downloads.map((song) => (
         <SongRow
@@ -181,5 +217,63 @@ export function Downloads({
         </ActionButton>
       </PanelSectionRow>
     </PanelSection>
+  );
+}
+
+const STATE_LABEL: Record<DownloadState, string> = {
+  queued: "Queued",
+  downloading: "Downloading",
+  done: "Done",
+  failed: "Failed",
+};
+
+function QueueRow({ item }: { item: DownloadQueue["items"][number] }) {
+  const color =
+    item.state === "failed"
+      ? "#ff8a80"
+      : item.state === "done"
+        ? "#61c554"
+        : item.state === "downloading"
+          ? "#1a9fff"
+          : "#8f98a0";
+  return (
+    <div
+      style={{
+        padding: "6px 8px",
+        marginBottom: 4,
+        borderRadius: 7,
+        background: "rgba(255,255,255,0.05)",
+      }}
+    >
+      <div style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 11 }}>
+        <div
+          style={{
+            flex: 1,
+            minWidth: 0,
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {item.title || item.id}
+        </div>
+        <div style={{ color, whiteSpace: "nowrap" }}>
+          {STATE_LABEL[item.state]}
+          {item.state === "downloading" ? ` ${item.percent}%` : ""}
+        </div>
+      </div>
+      {item.state === "downloading" && (
+        <div style={{ marginTop: 4 }}>
+          <ProgressBar nProgress={item.percent / 100} />
+        </div>
+      )}
+      {item.error && (
+        <div style={{ marginTop: 3, fontSize: 10, color: "#ff8a80" }}>{item.error}</div>
+      )}
+      <div style={{ fontSize: 9, color: "#8f98a0", marginTop: 2 }}>
+        {item.pinned ? "Saved download" : "Auto-cache"}
+      </div>
+    </div>
   );
 }

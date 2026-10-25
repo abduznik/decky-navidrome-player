@@ -112,6 +112,10 @@ class NavidromePlugin:
     async def get_settings(self) -> dict[str, Any]:
         return self._public_settings()
 
+    async def set_show_playlists(self, show: bool) -> dict[str, Any]:
+        saved = self._settings_store().update(show_playlists=bool(show))
+        return self._public_settings(asdict(saved))
+
     async def save_settings(self, raw: dict[str, Any]) -> dict[str, Any]:
         try:
             saved = self._settings_store().save(raw)
@@ -248,6 +252,16 @@ class NavidromePlugin:
             song["isCached"] = True
             song["isDownloaded"] = True
         return songs
+
+    async def get_download_queue(self) -> dict[str, Any]:
+        if self._downloads is None:
+            return {"items": [], "downloading": 0, "pending": 0, "done": 0, "failed": 0, "active": False}
+        return await asyncio.to_thread(self._downloads.snapshot)
+
+    async def clear_download_queue(self) -> dict[str, Any]:
+        if self._downloads is None:
+            return {"items": [], "downloading": 0, "pending": 0, "done": 0, "failed": 0, "active": False}
+        return await asyncio.to_thread(self._downloads.clear_finished)
 
     async def delete_download(self, song_id: str) -> bool:
         return self._cache_manager().remove(str(song_id))

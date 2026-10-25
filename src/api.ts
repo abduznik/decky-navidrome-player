@@ -3,6 +3,7 @@ import type {
   Album,
   CacheStats,
   ConnectionResult,
+  DownloadQueue,
   DownloadResult,
   Playlist,
   SearchResult,
@@ -13,6 +14,7 @@ import type {
 export const api = {
   getSettings: callable<[], Settings>("get_settings"),
   saveSettings: callable<[Settings], Settings>("save_settings"),
+  setShowPlaylists: callable<[boolean], Settings>("set_show_playlists"),
   testConnection: callable<[Settings], ConnectionResult>("test_connection"),
   getMediaBase: callable<[], string>("get_media_base"),
 
@@ -26,6 +28,8 @@ export const api = {
   downloadSongs: callable<[Song[]], DownloadResult>("download_songs"),
   prefetchSong: callable<[Song], boolean>("prefetch_song"),
   getDownloads: callable<[], Song[]>("get_downloads"),
+  getDownloadQueue: callable<[], DownloadQueue>("get_download_queue"),
+  clearDownloadQueue: callable<[], DownloadQueue>("clear_download_queue"),
   deleteDownload: callable<[string], boolean>("delete_download"),
   getCacheStats: callable<[], CacheStats>("get_cache_stats"),
   clearCache: callable<[boolean], CacheStats>("clear_cache"),

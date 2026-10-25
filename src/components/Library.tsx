@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ButtonItem,
-  DropdownItem,
+  Focusable,
   PanelSection,
   PanelSectionRow,
   TextField,
@@ -45,7 +45,13 @@ const ALBUM_KINDS = [
   { data: "alphabeticalByName", label: "Alphabetical" },
 ];
 
-export function Library() {
+export function Library({
+  showPlaylists,
+  onTogglePlaylists,
+}: {
+  showPlaylists: boolean;
+  onTogglePlaylists: (show: boolean) => Promise<void>;
+}) {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [albumKind, setAlbumKind] = useState("newest");
@@ -55,38 +61,77 @@ export function Library() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const albumRequest = useRef(0);
 
-  const loadAlbums = useCallback(async (kind: string, append = false) => {
-    try {
-      const offset = append ? albums.length : 0;
-      const next = await api.getAlbums(kind, 30, offset);
-      setAlbums((previous) => (append ? [...previous, ...next] : next));
-    } catch (err) {
-      setError(errorMessage(err));
-    }
-  }, [albums.length]);
+  const loadAlbums = useCallback(
+    async (kind: string, append = false) => {
+      const request = ++albumRequest.current;
+      setLoading(true);
+      try {
+        const offset = append ? albums.length : 0;
+        const next = await api.getAlbums(kind, 30, offset);
+        if (request !== albumRequest.current) return;
+        setAlbums((previous) => (append ? [...previous, ...next] : next));
+        setError(null);
+      } catch (err) {
+        if (request === albumRequest.current) setError(errorMessage(err));
+      } finally {
+        if (request === albumRequest.current) setLoading(false);
+      }
+    },
+    [albums.length],
+  );
+
+  const changeAlbumKind = (kind: string) => {
+    if (kind === albumKind) return;
+    setAlbumKind(kind);
+    setAlbums([]);
+    void loadAlbums(kind);
+  };
 
   useEffect(() => {
     let alive = true;
+    const request = ++albumRequest.current;
     void (async () => {
       try {
-        const [nextPlaylists, nextAlbums] = await Promise.all([
-          api.getPlaylists(),
-          api.getAlbums("newest", 30, 0),
-        ]);
-        if (!alive) return;
-        setPlaylists(nextPlaylists);
+        const nextAlbums = await api.getAlbums("newest", 30, 0);
+        if (!alive || request !== albumRequest.current) return;
         setAlbums(nextAlbums);
+        setError(null);
       } catch (err) {
-        if (alive) setError(errorMessage(err));
+        if (alive && request === albumRequest.current) setError(errorMessage(err));
       } finally {
-        if (alive) setLoading(false);
+        if (alive && request === albumRequest.current) setLoading(false);
       }
     })();
     return () => {
       alive = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!showPlaylists) return;
+    let alive = true;
+    void api
+      .getPlaylists()
+      .then((next) => {
+        if (alive) setPlaylists(next);
+      })
+      .catch((err) => {
+        if (alive) setError(errorMessage(err));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [showPlaylists]);
+
+  const togglePlaylists = async () => {
+    try {
+      await onTogglePlaylists(!showPlaylists);
+    } catch (err) {
+      toaster.toast({ title: "Could not save playlist setting", body: errorMessage(err) });
+    }
+  };
 
   const download = async (songs: Song[]) => {
     if (!songs.length) return;
@@ -280,9 +325,14 @@ export function Library() {
       </PanelSectionRow>
 
       <PanelSectionRow>
-        <ActionButton onClick={() => void player.playRandom(40)}>
-          <FaRandom size={11} /> Play random mix
-        </ActionButton>
+        <ButtonRow>
+          <ActionButton onClick={() => void player.playRandom(40)} style={{ flex: 1 }}>
+            <FaRandom size={11} /> Random mix
+          </ActionButton>
+          <ActionButton onClick={() => void togglePlaylists()} style={{ flex: 1 }}>
+            <FaListUl size={10} /> {showPlaylists ? "Hide playlists" : "Show playlists"}
+          </ActionButton>
+        </ButtonRow>
       </PanelSectionRow>
 
       {error && (
@@ -291,29 +341,22 @@ export function Library() {
         </PanelSectionRow>
       )}
 
-      <SubTitle text="Playlists" />
-      {playlists.map((playlist) => (
-        <PlaylistRow
-          key={playlist.id}
-          playlist={playlist}
-          onOpen={() => void openPlaylist(playlist)}
-        />
-      ))}
-      {!playlists.length && !loading && <EmptyState text="No playlists on the server." />}
+      {showPlaylists && (
+        <>
+          <SubTitle text="Playlists" />
+          {playlists.map((playlist) => (
+            <PlaylistRow
+              key={playlist.id}
+              playlist={playlist}
+              onOpen={() => void openPlaylist(playlist)}
+            />
+          ))}
+          {!playlists.length && !loading && <EmptyState text="No playlists on the server." />}
+        </>
+      )}
 
       <SubTitle text="Albums" />
-      <PanelSectionRow>
-        <DropdownItem
-          label="Filter"
-          rgOptions={ALBUM_KINDS}
-          selectedOption={albumKind}
-          onChange={(option) => {
-            const kind = String(option.data);
-            setAlbumKind(kind);
-            void loadAlbums(kind);
-          }}
-        />
-      </PanelSectionRow>
+      <AlbumFilter value={albumKind} onChange={changeAlbumKind} />
       {albums.map((album) => (
         <AlbumRow key={`${album.id}-${album.name}`} album={album} onOpen={() => void openAlbum(album)} />
       ))}
@@ -327,6 +370,37 @@ export function Library() {
         </PanelSectionRow>
       )}
     </PanelSection>
+  );
+}
+
+function AlbumFilter({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (kind: string) => void;
+}) {
+  return (
+    <Focusable
+      flow-children="grid"
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 4,
+        padding: "0 2px 5px",
+      }}
+    >
+      {ALBUM_KINDS.map((kind) => (
+        <ActionButton
+          key={kind.data}
+          primary={value === kind.data}
+          onClick={() => onChange(kind.data)}
+          style={{ padding: "6px 2px", fontSize: 10 }}
+        >
+          {kind.label}
+        </ActionButton>
+      ))}
+    </Focusable>
   );
 }
 

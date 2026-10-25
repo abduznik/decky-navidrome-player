@@ -187,6 +187,10 @@ class SubsonicTests(unittest.TestCase):
         albums = self.client().get_albums("newest", 10, 0)
         self.assertEqual(albums[0]["name"], "Album")
         self.assertEqual(albums[0]["artist"], "Artist")
+        for kind in ("newest", "recent", "frequent", "random"):
+            self.client().get_albums(kind, 10, 0)
+            _path, query, _headers = FakeNavidrome.requests[-1]
+            self.assertEqual(query["type"][0], kind)
 
         result = self.client().search("test")
         self.assertEqual(result["songs"][0]["title"], "Test Song")

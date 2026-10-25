@@ -54,7 +54,11 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(settings.cache_limit_bytes, DEFAULT_CACHE_LIMIT_BYTES)
         self.assertEqual(settings.max_bitrate, 0)
         self.assertTrue(settings.cache_played_songs)
+        self.assertTrue(settings.show_playlists)
         self.assertFalse(settings.configured)
+
+        hidden = sanitize_settings({"show_playlists": False})
+        self.assertFalse(hidden.show_playlists)
 
         low = sanitize_settings({"cache_limit_bytes": 1})
         self.assertGreaterEqual(low.cache_limit_bytes, 64 * 1024 * 1024)
@@ -72,6 +76,7 @@ class ConfigTests(unittest.TestCase):
                     "password": "secret",
                     "cache_limit_bytes": 2 * 1024 * 1024 * 1024,
                     "cache_played_songs": False,
+                    "show_playlists": False,
                     "max_bitrate": 192,
                 }
             )
@@ -83,6 +88,7 @@ class ConfigTests(unittest.TestCase):
             self.assertEqual(reloaded.password, "secret")
             self.assertEqual(reloaded.max_bitrate, 192)
             self.assertFalse(reloaded.cache_played_songs)
+            self.assertFalse(reloaded.show_playlists)
 
 
 class CacheTests(unittest.TestCase):

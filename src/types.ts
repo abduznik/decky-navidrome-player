@@ -44,6 +44,7 @@ export interface Settings {
   password: string;
   cache_limit_bytes: number;
   cache_played_songs: boolean;
+  show_playlists: boolean;
   max_bitrate: number;
   configured?: boolean;
 }
@@ -84,13 +85,34 @@ export interface DownloadProgress {
   pinned: boolean;
 }
 
-export interface DownloadSummary {
-  active: boolean;
-  downloading: string[];
-  pending: number;
-  completed: number;
-  failed: number;
+export type DownloadState = "queued" | "downloading" | "done" | "failed";
+
+export interface DownloadQueueItem {
+  id: string;
+  title: string;
+  state: DownloadState;
+  percent: number;
+  pinned: boolean;
+  error: string;
 }
+
+export interface DownloadQueue {
+  items: DownloadQueueItem[];
+  downloading: number;
+  pending: number;
+  done: number;
+  failed: number;
+  active: boolean;
+}
+
+export const EMPTY_DOWNLOAD_QUEUE: DownloadQueue = {
+  items: [],
+  downloading: 0,
+  pending: 0,
+  done: 0,
+  failed: 0,
+  active: false,
+};
 
 export type RepeatMode = "off" | "all" | "one";
 

@@ -111,6 +111,30 @@ class DownloadTests(unittest.TestCase):
         self.assertEqual(result["queued"], 0)
         self.assertTrue(wait_for(lambda: self.cache.peek("promote")["pinned"]))
 
+    def test_queue_snapshot_and_clear_finished(self) -> None:
+        self.manager.enqueue([song("snapshot")], pinned=True)
+        self.assertTrue(wait_for(lambda: self.manager.snapshot()["done"] == 1))
+        snapshot = self.manager.snapshot()
+        self.assertEqual(snapshot["done"], 1)
+        self.assertEqual(snapshot["items"][0]["state"], "done")
+        self.assertEqual(snapshot["items"][0]["percent"], 100)
+        cleared = self.manager.clear_finished()
+        self.assertEqual(cleared["items"], [])
+
+    def test_queue_keeps_failure_message(self) -> None:
+        self.manager.enqueue([song("bad")], pinned=True)
+        self.assertTrue(wait_for(lambda: self.manager.snapshot()["failed"] == 1))
+        item = self.manager.snapshot()["items"][0]
+        self.assertEqual(item["state"], "failed")
+        self.assertIn("Server unavailable", item["error"])
+
+    def test_manual_pin_promotes_queued_auto_job(self) -> None:
+        self.manager.enqueue([song("auto-queued")], pinned=False)
+        result = self.manager.enqueue([song("auto-queued")], pinned=True)
+        self.assertEqual(result["queued"], 0)
+        self.assertTrue(wait_for(lambda: self.cache.is_cached("auto-queued")))
+        self.assertTrue(self.cache.peek("auto-queued")["pinned"])
+
     def test_failure_reports_pinned_flag(self) -> None:
         self.manager.enqueue([song("bad")], pinned=True)
         self.assertTrue(wait_for(lambda: any(event == "download_failed" for event, _ in self.events)))

@@ -30,6 +30,7 @@ class Settings:
     password: str = ""
     cache_limit_bytes: int = DEFAULT_CACHE_LIMIT_BYTES
     cache_played_songs: bool = True
+    show_playlists: bool = True
     max_bitrate: int = 0
 
     @property
@@ -86,6 +87,7 @@ def sanitize_settings(raw: dict) -> Settings:
             raw.get("cache_limit_bytes", DEFAULT_CACHE_LIMIT_BYTES)
         ),
         cache_played_songs=bool(raw.get("cache_played_songs", True)),
+        show_playlists=bool(raw.get("show_playlists", True)),
         max_bitrate=bitrate,
     )
 

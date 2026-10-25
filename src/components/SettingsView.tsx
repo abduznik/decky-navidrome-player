@@ -42,8 +42,10 @@ export function SettingsView({
   const [confirmClear, setConfirmClear] = useState<"auto" | "all" | null>(null);
 
   useEffect(() => {
-    setForm(settings);
-  }, [settings]);
+    // Only initialise once. Background settings updates (for example the
+    // playlist toggle, which saves immediately) must not wipe unsaved edits.
+    if (form === null && settings) setForm(settings);
+  }, [form, settings]);
 
   if (!form) {
     return (
@@ -61,6 +63,7 @@ export function SettingsView({
     setBusy(true);
     try {
       const saved = await api.saveSettings(form);
+      setForm(saved);
       onSaved(saved);
       toaster.toast({ title: "Settings saved", body: "Navidrome Player is ready." });
     } catch (error) {
@@ -178,6 +181,25 @@ export function SettingsView({
           description="Automatically keep recently played tracks for offline listening."
           checked={form.cache_played_songs}
           onChange={(checked) => patch({ cache_played_songs: checked })}
+        />
+      </PanelSectionRow>
+      <PanelSectionRow>
+        <ToggleField
+          label="Show playlists"
+          description="Hide the playlists section in the Library if you only use albums and random mixes."
+          checked={form.show_playlists}
+          onChange={(checked) => {
+            setForm({ ...form, show_playlists: checked });
+            void api
+              .setShowPlaylists(checked)
+              .then((saved) => onSaved(saved))
+              .catch((error) =>
+                toaster.toast({
+                  title: "Could not save playlist setting",
+                  body: errorMessage(error),
+                }),
+              );
+          }}
         />
       </PanelSectionRow>
       <PanelSectionRow>

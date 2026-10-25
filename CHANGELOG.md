@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.3
+
+- Fixed album filtering: the dropdown is now a grid of controller-friendly
+  filter buttons, so choosing **Recently added / Recently played / Most played /
+  Random / By artist / Alphabetical** no longer closes or resets the plugin and
+  the list refreshes in place.
+- The Library remembers whether playlists should be shown. Toggle it from the
+  Library or Settings; persisted as `show_playlists` in the settings file.
+- Added a download queue panel in the Offline tab with queued/downloading/done/
+  failed states, per-track progress and error messages. Removed per-download
+  completion/failure toasts to avoid notification spam; the queue badge and
+  panel carry that information instead.
+- Backend: `get_download_queue`, `clear_download_queue`, queue state tracking in
+  the download worker, and tests for queue snapshots/failures (39 tests total).
+
 ## 0.1.2
 
 - Added a verified Retroid Pocket Nova (arm64) screenshot to the README and

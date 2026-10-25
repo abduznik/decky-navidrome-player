@@ -1,10 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import {
-  PanelSection,
-  PanelSectionRow,
-  ProgressBar,
-  staticClasses,
-} from "@decky/ui";
+import { PanelSection, PanelSectionRow, staticClasses } from "@decky/ui";
 import {
   addEventListener,
   definePlugin,
@@ -15,12 +10,14 @@ import {
 import { FaCog, FaDownload, FaListUl, FaMusic, FaPlay } from "react-icons/fa";
 import { api, errorMessage, mediaBaseReady, primeMediaBase } from "./api";
 import { player } from "./state/player";
-import type {
-  CacheStats,
-  DownloadProgress,
-  Settings,
-  Song,
-  Tab,
+import {
+  EMPTY_DOWNLOAD_QUEUE,
+  type CacheStats,
+  type DownloadProgress,
+  type DownloadQueue,
+  type Settings,
+  type Song,
+  type Tab,
 } from "./types";
 import { Downloads } from "./components/Downloads";
 import { Library } from "./components/Library";
@@ -34,7 +31,7 @@ function Content() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [stats, setStats] = useState<CacheStats | null>(null);
   const [downloads, setDownloads] = useState<Song[]>([]);
-  const [progress, setProgress] = useState<DownloadProgress | null>(null);
+  const [queue, setQueue] = useState<DownloadQueue>(EMPTY_DOWNLOAD_QUEUE);
   const [error, setError] = useState<string | null>(null);
   const visible = useQuickAccessVisible();
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -42,14 +39,16 @@ function Content() {
 
   const refreshAll = useCallback(async () => {
     try {
-      const [nextSettings, nextStats, nextDownloads] = await Promise.all([
+      const [nextSettings, nextStats, nextDownloads, nextQueue] = await Promise.all([
         api.getSettings(),
         api.getCacheStats(),
         api.getDownloads(),
+        api.getDownloadQueue(),
       ]);
       setSettings(nextSettings);
       setStats(nextStats);
       setDownloads(nextDownloads);
+      setQueue(nextQueue);
       setError(null);
       if (!nextSettings.configured && !autoTabbed.current) {
         autoTabbed.current = true;
@@ -91,27 +90,23 @@ function Content() {
 
   useEffect(() => {
     const onProgress = addEventListener<[DownloadProgress]>("download_progress", (event) => {
-      if (event.pinned) setProgress(event);
+      setQueue((previous) => ({
+        ...previous,
+        items: previous.items.map((item) =>
+          item.id === event.id
+            ? { ...item, state: event.percent >= 100 ? "done" : "downloading", percent: event.percent }
+            : item,
+        ),
+      }));
     });
     const onComplete = addEventListener<[{ id: string; title: string; pinned: boolean }]>(
       "download_complete",
-      (event) => {
-        if (event.pinned) {
-          setProgress(null);
-          toaster.toast({ title: "Download complete", body: event.title });
-        }
-        refreshSoon();
-      },
+      () => refreshSoon(),
     );
-    const onFailed = addEventListener<
-      [{ id: string; title: string; error: string; pinned: boolean }]
-    >("download_failed", (event) => {
-      setProgress(null);
-      if (event.pinned) {
-        toaster.toast({ title: "Download failed", body: `${event.title}: ${event.error}` });
-      }
-      refreshSoon();
-    });
+    const onFailed = addEventListener<[{ id: string; title: string; error: string; pinned: boolean }]>(
+      "download_failed",
+      () => refreshSoon(),
+    );
     const onUpdated = addEventListener<[unknown]>("downloads_updated", () => refreshSoon());
     return () => {
       removeEventListener("download_progress", onProgress);
@@ -122,10 +117,28 @@ function Content() {
     };
   }, [refreshSoon]);
 
+  const togglePlaylists = useCallback(async (show: boolean) => {
+    const saved = await api.setShowPlaylists(show);
+    setSettings(saved);
+  }, []);
+
+  const clearDownloadQueue = async () => {
+    try {
+      setQueue(await api.clearDownloadQueue());
+    } catch (err) {
+      toaster.toast({ title: "Could not clear queue", body: errorMessage(err) });
+    }
+  };
+
+  const queueActive = queue.downloading + queue.pending;
   const tabs: { id: Tab; label: string; icon: ReactNode }[] = [
     { id: "now", label: "Player", icon: <FaPlay size={11} /> },
     { id: "library", label: "Library", icon: <FaListUl size={11} /> },
-    { id: "downloads", label: "Offline", icon: <FaDownload size={11} /> },
+    {
+      id: "downloads",
+      label: queueActive > 0 ? `Offline (${queueActive})` : "Offline",
+      icon: <FaDownload size={11} />,
+    },
     { id: "settings", label: "Settings", icon: <FaCog size={11} /> },
   ];
 
@@ -173,28 +186,22 @@ function Content() {
         </PanelSection>
       )}
 
-      {progress && progress.pinned && progress.percent < 100 && (
-        <PanelSection>
-          <PanelSectionRow>
-            <div style={{ fontSize: 11, color: "#cfd3d6" }}>
-              Downloading {progress.title || "song"}… {progress.percent}%
-            </div>
-          </PanelSectionRow>
-          <PanelSectionRow>
-            <ProgressBar nProgress={progress.percent / 100} />
-          </PanelSectionRow>
-        </PanelSection>
-      )}
-
       {ready && tab === "now" && <NowPlaying />}
-      {ready && tab === "library" && <Library />}
+      {ready && tab === "library" && (
+        <Library
+          showPlaylists={settings?.show_playlists ?? true}
+          onTogglePlaylists={togglePlaylists}
+        />
+      )}
       {ready && tab === "downloads" && (
         <Downloads
           stats={stats}
           downloads={downloads}
           settings={settings}
+          queue={queue}
           onRefresh={() => void refreshAll()}
           onSettingsChange={setSettings}
+          onClearQueue={() => void clearDownloadQueue()}
         />
       )}
       {ready && tab === "settings" && (
@@ -206,8 +213,13 @@ function Content() {
             setSettings(saved);
             if (!wasConfigured && saved.configured) {
               setTab("now");
+              void refreshAll();
+              return;
             }
-            void refreshAll();
+            void api
+              .getCacheStats()
+              .then((nextStats) => setStats(nextStats))
+              .catch(() => undefined);
           }}
           onStats={() => void refreshAll()}
         />

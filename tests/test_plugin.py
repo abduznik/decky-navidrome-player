@@ -44,6 +44,19 @@ class FakeDownloads:
         self.prefetched.append(song)
         return True
 
+    def snapshot(self) -> dict:
+        return {
+            "items": [],
+            "downloading": 0,
+            "pending": 0,
+            "done": 0,
+            "failed": 0,
+            "active": False,
+        }
+
+    def clear_finished(self) -> dict:
+        return self.snapshot()
+
 
 class FakeServer:
     base_url = "http://127.0.0.1:1234/m/test-token"
@@ -89,7 +102,21 @@ class PluginTests(unittest.TestCase):
     def test_settings_are_public_and_flagged_configured(self) -> None:
         settings = self.run_async(self.plugin.get_settings())
         self.assertTrue(settings["configured"])
+        self.assertTrue(settings["show_playlists"])
         self.assertEqual(settings["server_url"], "http://music.local:4533")
+
+    def test_show_playlists_setting_persists(self) -> None:
+        saved = self.run_async(self.plugin.set_show_playlists(False))
+        self.assertFalse(saved["show_playlists"])
+        self.assertFalse(self.run_async(self.plugin.get_settings())["show_playlists"])
+        saved = self.run_async(self.plugin.set_show_playlists(True))
+        self.assertTrue(saved["show_playlists"])
+
+    def test_download_queue_methods(self) -> None:
+        queue = self.run_async(self.plugin.get_download_queue())
+        self.assertEqual(queue["items"], [])
+        cleared = self.run_async(self.plugin.clear_download_queue())
+        self.assertFalse(cleared["active"])
 
     def test_song_decoration_uses_cache_manifest(self) -> None:
         temp = self.plugin._cache.new_temp_path("one")
