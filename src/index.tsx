@@ -26,9 +26,7 @@ import { Downloads } from "./components/Downloads";
 import { Library } from "./components/Library";
 import { NowPlaying } from "./components/NowPlaying";
 import { SettingsView } from "./components/SettingsView";
-import { IconButton } from "./components/Common";
-
-const ACCENT = "#1a9fff";
+import { ActionButton, IconButton } from "./components/Common";
 
 function Content() {
   const [tab, setTab] = useState<Tab>("now");
@@ -168,22 +166,9 @@ function Content() {
       {ready && !settings?.configured && tab !== "settings" && (
         <PanelSection>
           <PanelSectionRow>
-            <button
-              onClick={() => setTab("settings")}
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: 8,
-                border: "none",
-                background: ACCENT,
-                color: "#fff",
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
+            <ActionButton primary onClick={() => setTab("settings")}>
               Set up your Navidrome server
-            </button>
+            </ActionButton>
           </PanelSectionRow>
         </PanelSection>
       )}

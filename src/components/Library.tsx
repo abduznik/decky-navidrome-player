@@ -18,19 +18,7 @@ import { api, errorMessage } from "../api";
 import { formatCount } from "../format";
 import { player } from "../state/player";
 import type { Album, Playlist, SearchResult, Song } from "../types";
-import { AlbumRow, Cover, EmptyState, SongRow, SubTitle } from "./Common";
-
-const buttonStyle = {
-  width: "100%",
-  padding: "9px",
-  borderRadius: 8,
-  border: "none",
-  background: "rgba(255,255,255,0.1)",
-  color: "#fff",
-  fontSize: 12,
-  fontWeight: 600,
-  cursor: "pointer",
-} as const;
+import { ActionButton, AlbumRow, Cover, EmptyState, SongRow, SubTitle } from "./Common";
 
 interface Detail {
   kind: "album" | "playlist";
@@ -184,27 +172,28 @@ export function Library() {
         </PanelSectionRow>
         <PanelSectionRow>
           <div style={{ display: "flex", gap: 6 }}>
-            <button
+            <ActionButton
+              primary
               disabled={!detail.songs.length}
               onClick={() => void player.playQueue(detail.songs, 0)}
-              style={{ ...buttonStyle, flex: 1, background: "#1a9fff" }}
+              style={{ flex: 1 }}
             >
               Play all
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
               disabled={!detail.songs.length}
               onClick={() => void player.playShuffled(detail.songs)}
-              style={{ ...buttonStyle, flex: 1 }}
+              style={{ flex: 1 }}
             >
               <FaRandom size={10} /> Shuffle
-            </button>
-            <button
+            </ActionButton>
+            <ActionButton
               disabled={busy || !detail.songs.length}
               onClick={() => void download(detail.songs)}
-              style={{ ...buttonStyle, flex: 1 }}
+              style={{ flex: 1 }}
             >
               <FaDownload size={10} /> All
-            </button>
+            </ActionButton>
           </div>
         </PanelSectionRow>
         {detail.songs.map((song, index) => (
@@ -275,15 +264,15 @@ export function Library() {
         />
       </PanelSectionRow>
       <PanelSectionRow>
-        <button disabled={busy} onClick={() => void search()} style={{ ...buttonStyle, background: "#1a9fff" }}>
+        <ActionButton primary disabled={busy} onClick={() => void search()}>
           <FaSearch size={11} /> Search
-        </button>
+        </ActionButton>
       </PanelSectionRow>
 
       <PanelSectionRow>
-        <button onClick={() => void player.playRandom(40)} style={buttonStyle}>
+        <ActionButton onClick={() => void player.playRandom(40)}>
           <FaRandom size={11} /> Play random mix
-        </button>
+        </ActionButton>
       </PanelSectionRow>
 
       {error && (

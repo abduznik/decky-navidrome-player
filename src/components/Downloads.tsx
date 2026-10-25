@@ -11,19 +11,7 @@ import { api, errorMessage } from "../api";
 import { formatBytes, formatCount } from "../format";
 import { player, usePlayer } from "../state/player";
 import type { CacheStats, Settings, Song } from "../types";
-import { EmptyState, SongRow, SubTitle } from "./Common";
-
-const buttonStyle = {
-  width: "100%",
-  padding: "9px",
-  borderRadius: 8,
-  border: "none",
-  background: "rgba(255,255,255,0.1)",
-  color: "#fff",
-  fontSize: 12,
-  fontWeight: 600,
-  cursor: "pointer",
-} as const;
+import { ActionButton, EmptyState, SongRow, SubTitle } from "./Common";
 
 export function Downloads({
   stats,
@@ -144,26 +132,27 @@ export function Downloads({
 
       <PanelSectionRow>
         <div style={{ display: "flex", gap: 6 }}>
-          <button
+          <ActionButton
+            primary
             disabled={!downloads.length}
             onClick={() => void player.playQueue(downloads, 0)}
-            style={{ ...buttonStyle, flex: 1, background: downloads.length ? "#1a9fff" : "rgba(255,255,255,0.06)" }}
+            style={{ flex: 1 }}
           >
             Play downloads
-          </button>
-          <button
+          </ActionButton>
+          <ActionButton
             disabled={!downloads.length}
             onClick={() => void player.playShuffled(downloads)}
-            style={{ ...buttonStyle, flex: 1 }}
+            style={{ flex: 1 }}
           >
             <FaRandom size={10} /> Shuffle
-          </button>
+          </ActionButton>
         </div>
       </PanelSectionRow>
       <PanelSectionRow>
-        <button disabled={busy} onClick={() => void downloadQueue()} style={buttonStyle}>
+        <ActionButton disabled={busy} onClick={() => void downloadQueue()}>
           <FaDownload size={11} /> Download current queue ({state.queue.length})
-        </button>
+        </ActionButton>
       </PanelSectionRow>
 
       <SubTitle text={`Downloads (${downloads.length})`} />
@@ -187,17 +176,9 @@ export function Downloads({
       )}
 
       <PanelSectionRow>
-        <button
-          disabled={busy}
-          onClick={() => void clearAuto()}
-          style={{
-            ...buttonStyle,
-            background: confirmClear ? "rgba(255,138,128,0.20)" : "rgba(255,255,255,0.08)",
-            color: confirmClear ? "#ff8a80" : "#dfe3e6",
-          }}
-        >
+        <ActionButton danger={confirmClear} disabled={busy} onClick={() => void clearAuto()}>
           {confirmClear ? "Tap again to clear automatic cache" : "Clear automatic cache"}
-        </button>
+        </ActionButton>
       </PanelSectionRow>
     </PanelSection>
   );

@@ -12,7 +12,7 @@ import { FaPlug, FaSave, FaTrash } from "react-icons/fa";
 import { api, errorMessage } from "../api";
 import { formatBytes } from "../format";
 import type { CacheStats, ConnectionResult, Settings } from "../types";
-import { SubTitle } from "./Common";
+import { ActionButton, SubTitle } from "./Common";
 
 const GB = 1024 * 1024 * 1024;
 const BITRATES = [
@@ -24,18 +24,6 @@ const BITRATES = [
   { data: 256, label: "256 kbps" },
   { data: 320, label: "320 kbps" },
 ];
-
-const buttonStyle = {
-  width: "100%",
-  padding: "9px",
-  borderRadius: 8,
-  border: "none",
-  background: "rgba(255,255,255,0.1)",
-  color: "#fff",
-  fontSize: 12,
-  fontWeight: 600,
-  cursor: "pointer",
-} as const;
 
 export function SettingsView({
   settings,
@@ -162,16 +150,12 @@ export function SettingsView({
       </PanelSectionRow>
       <PanelSectionRow>
         <div style={{ display: "flex", gap: 6 }}>
-          <button disabled={busy} onClick={() => void testConnection()} style={{ ...buttonStyle, flex: 1 }}>
+          <ActionButton disabled={busy} onClick={() => void testConnection()} style={{ flex: 1 }}>
             <FaPlug size={10} /> Test
-          </button>
-          <button
-            disabled={busy}
-            onClick={() => void save()}
-            style={{ ...buttonStyle, flex: 1, background: "#1a9fff" }}
-          >
+          </ActionButton>
+          <ActionButton primary disabled={busy} onClick={() => void save()} style={{ flex: 1 }}>
             <FaSave size={10} /> Save
-          </button>
+          </ActionButton>
         </div>
       </PanelSectionRow>
 
@@ -221,32 +205,16 @@ export function SettingsView({
         </div>
       </PanelSectionRow>
       <PanelSectionRow>
-        <button
-          disabled={busy}
-          onClick={() => void clear(false)}
-          style={{
-            ...buttonStyle,
-            background: confirmClear === "auto" ? "rgba(255,138,128,0.2)" : buttonStyle.background,
-            color: confirmClear === "auto" ? "#ff8a80" : "#fff",
-          }}
-        >
+        <ActionButton danger={confirmClear === "auto"} disabled={busy} onClick={() => void clear(false)}>
           <FaTrash size={10} />{" "}
           {confirmClear === "auto" ? "Tap again: clear auto cache" : "Clear automatic cache"}
-        </button>
+        </ActionButton>
       </PanelSectionRow>
       <PanelSectionRow>
-        <button
-          disabled={busy}
-          onClick={() => void clear(true)}
-          style={{
-            ...buttonStyle,
-            background: confirmClear === "all" ? "rgba(255,138,128,0.2)" : "rgba(255,255,255,0.06)",
-            color: confirmClear === "all" ? "#ff8a80" : "#cfd3d6",
-          }}
-        >
+        <ActionButton danger={confirmClear === "all"} disabled={busy} onClick={() => void clear(true)}>
           <FaTrash size={10} />{" "}
           {confirmClear === "all" ? "Tap again: delete all music" : "Delete all downloads & cache"}
-        </button>
+        </ActionButton>
       </PanelSectionRow>
     </PanelSection>
   );

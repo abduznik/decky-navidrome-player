@@ -16,19 +16,7 @@ import { api, errorMessage } from "../api";
 import { formatTime } from "../format";
 import { player, usePlayer } from "../state/player";
 import type { Song } from "../types";
-import { Cover, EmptyState, IconButton, SongRow, SubTitle } from "./Common";
-
-const actionButtonStyle = {
-  width: "100%",
-  padding: "9px",
-  borderRadius: 8,
-  border: "none",
-  background: "rgba(255,255,255,0.1)",
-  color: "#fff",
-  fontSize: 12,
-  fontWeight: 600,
-  cursor: "pointer",
-} as const;
+import { ActionButton, Cover, EmptyState, IconButton, SongRow, SubTitle } from "./Common";
 
 export function NowPlaying() {
   const state = usePlayer();
@@ -69,12 +57,9 @@ export function NowPlaying() {
           </div>
         </PanelSectionRow>
         <PanelSectionRow>
-          <button
-            onClick={() => void player.playRandom()}
-            style={{ ...actionButtonStyle, background: "#1a9fff", padding: "10px", fontSize: 13, fontWeight: 700 }}
-          >
+          <ActionButton primary onClick={() => void player.playRandom()}>
             <FaRandom size={12} /> Play random mix
-          </button>
+          </ActionButton>
         </PanelSectionRow>
         <PanelSectionRow>
           <div style={{ fontSize: 11, color: "#8f98a0", textAlign: "center" }}>
@@ -204,20 +189,16 @@ export function NowPlaying() {
 
       <PanelSectionRow>
         <div style={{ display: "flex", gap: 6 }}>
-          <button
-            disabled={busy}
-            onClick={() => void download([current])}
-            style={{ ...actionButtonStyle, flex: 1 }}
-          >
+          <ActionButton disabled={busy} onClick={() => void download([current])} style={{ flex: 1 }}>
             <FaDownload size={11} /> Save song
-          </button>
-          <button
+          </ActionButton>
+          <ActionButton
             disabled={busy || !state.queue.length}
             onClick={() => void download(state.queue)}
-            style={{ ...actionButtonStyle, flex: 1 }}
+            style={{ flex: 1 }}
           >
             Save queue ({state.queue.length})
-          </button>
+          </ActionButton>
         </div>
       </PanelSectionRow>
 

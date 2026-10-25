@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { Focusable } from "@decky/ui";
 import { FaCheckCircle, FaDownload, FaMusic } from "react-icons/fa";
 import { artUrl } from "../api";
@@ -49,6 +49,57 @@ export function IconButton({
       }}
     >
       {icon}
+    </Focusable>
+  );
+}
+
+export function ActionButton({
+  children,
+  onClick,
+  disabled = false,
+  primary = false,
+  danger = false,
+  style,
+}: {
+  children: ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  primary?: boolean;
+  danger?: boolean;
+  style?: CSSProperties;
+}) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <Focusable
+      onActivate={disabled ? undefined : onClick}
+      onClick={disabled ? undefined : onClick}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      style={{
+        width: "100%",
+        padding: "9px",
+        borderRadius: 8,
+        border: "none",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        fontSize: 12,
+        fontWeight: 600,
+        background: primary
+          ? ACCENT
+          : danger
+            ? "rgba(255,138,128,0.18)"
+            : "rgba(255,255,255,0.1)",
+        color: danger ? "#ff8a80" : "#ffffff",
+        opacity: disabled ? 0.45 : 1,
+        cursor: disabled ? "default" : "pointer",
+        boxShadow: focused ? `0 0 0 2px ${ACCENT}` : "none",
+        transition: "background 120ms ease, box-shadow 120ms ease",
+        ...style,
+      }}
+    >
+      {children}
     </Focusable>
   );
 }
